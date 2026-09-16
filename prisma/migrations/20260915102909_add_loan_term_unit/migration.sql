@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `Loan` ADD COLUMN `termUnit` ENUM('WEEK', 'MONTH') NOT NULL DEFAULT 'MONTH';
