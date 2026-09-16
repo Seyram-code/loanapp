@@ -1,0 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+:root { font-family: 'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; color: #1b2430; background: #f3f6fb; font-synthesis: none; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 20px; --space-6: 24px; --space-8: 32px; --space-10: 40px; --space-12: 48px; --ink: #1b2430; --muted: #6c7a89; --line: #e5ebf2; --paper: #ffffff; --canvas: #f3f6fb; --primary: #1d2d44; --primary-strong: #152338; --accent: #4f6ef7; --accent-soft: #edf2ff; --success: #2e7d63; --success-soft: #eaf7f1; --warning: #d98b2b; --warning-soft: #fff4e4; --danger: #d55d5d; --danger-soft: #fdeceb; --secondary: #6d5ec2; --secondary-soft: #f1edff; --navy: #1d2d44; --gold: #d98b2b; --shadow-sm: 0 1px 2px rgba(18, 35, 56, .05); --shadow-md: 0 14px 30px rgba(18, 35, 56, .08); }
+[data-theme='dark'] { color-scheme: dark; --ink: #ebf1f6; --muted: #a8b4bf; --line: #2d3b4d; --paper: #1d2a34; --canvas: #121c25; --primary: #dfeaf6; --primary-strong: #edf5ff; --accent: #7e97ff; --accent-soft: rgba(126, 151, 255, .14); --success: #5ab58f; --success-soft: rgba(90, 181, 143, .14); --warning: #f0b15f; --warning-soft: rgba(240, 177, 95, .14); --danger: #ef7d76; --danger-soft: rgba(239, 125, 118, .14); --secondary: #9c8de8; --secondary-soft: rgba(156, 141, 232, .14); --navy: #dfeaf6; --shadow-sm: 0 1px 2px rgba(0, 0, 0, .24); --shadow-md: 0 14px 30px rgba(0, 0, 0, .28); }
+* { box-sizing: border-box; }
+html { background: var(--canvas); }
+body { margin: 0; min-width: 320px; max-width: 100vw; overflow-x: hidden; background: var(--canvas); }
+button, input, select { font: inherit; }
+button { border: 0; cursor: pointer; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid rgba(83, 124, 145, .28); outline-offset: 2px; }

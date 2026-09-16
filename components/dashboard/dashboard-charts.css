@@ -1,0 +1,56 @@
+.dashboard-charts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 18px; }
+.chart-panel { min-width: 0; padding: 18px; }
+.chart-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.chart-header h2 { margin: 0; color: #33322f; font-size: 15px; }
+.chart-header p { margin: 4px 0 0; color: #a09e95; font-size: 10px; }
+.chart-header-actions { display: flex; align-items: center; }
+.chart-period { min-width: 96px; padding: 6px 8px; color: #53667a; background: #f7fafc; border: 1px solid #e4ebf1; border-radius: 8px; font-size: 10px; font-weight: 600; }
+.chart-body { height: 214px; margin-top: 12px; }
+.status-chart { height: 230px; }
+@media (min-width: 1024px) and (max-width: 1439px) {
+  .dashboard-charts { gap: 16px; }
+  .chart-panel { padding: 20px; }
+  .chart-body { height: 220px; }
+}
+@media (min-width: 1440px) {
+  .dashboard-charts { gap: 18px; margin-bottom: 22px; }
+  .chart-panel { padding: 20px 20px 18px; }
+  .chart-body { height: 230px; }
+}
+.status-chart-layout { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; height: 100%; }
+.status-ring-shell { position: relative; display: grid; place-items: center; width: 150px; height: 150px; margin: 0 auto; }
+.status-ring { position: relative; width: 100%; height: 100%; border-radius: 50%; background: conic-gradient(#9bb7c5 0 35%, #88a9a0 35% 70%, #d3b65b 70% 100%); filter: saturate(0.9); -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 24px), #000 0); mask: radial-gradient(farthest-side, transparent calc(100% - 24px), #000 0); }
+.status-ring::before { content: ""; position: absolute; inset: 0; border-radius: 50%; background: transparent; }
+.status-ring-center { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; }
+.status-ring-center strong { color: #2b3d4f; font-size: clamp(1.9rem, 2vw, 2.7rem); font-weight: 700; line-height: 1; letter-spacing: -0.08em; }
+.status-list { list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 14px; width: min(100%, 220px); margin: 0; padding: 0; }
+.status-item { display: flex; align-items: center; gap: 8px; color: #46453f; font-size: 11px; line-height: 1.25; }
+.status-swatch { display: block; width: 10px; height: 10px; border-radius: 999px; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06); }
+.status-name { color: #3d4b5d; font-weight: 500; }
+.repayment-body { height: 230px; }
+.repayment-chart-layout { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; height: 100%; }
+.repayment-ring-shell { position: relative; display: grid; place-items: center; width: 150px; height: 150px; margin: 0 auto; }
+.repayment-ring { position: relative; width: 100%; height: 100%; border-radius: 50%; background: conic-gradient(#9bb7c5 0 35%, #88a9a0 35% 70%, #d3b65b 70% 100%); filter: saturate(0.9); -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 24px), #000 0); mask: radial-gradient(farthest-side, transparent calc(100% - 24px), #000 0); }
+.repayment-ring-center { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; pointer-events: none; }
+.currency-tag { color: #6d7d8d; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; }
+.repayment-ring-center strong { display: block; margin-top: 4px; color: #26364b; font-size: clamp(1.3rem, 1.5vw, 1.9rem); font-weight: 700; line-height: 1; letter-spacing: -0.06em; }
+.repayment-ring-center small { display: block; margin-top: 5px; color: #8b9aaa; font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; }
+.repayment-list { list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 14px; width: min(100%, 220px); margin: 0; padding: 0; }
+.repayment-item { display: flex; align-items: center; gap: 8px; color: #46453f; font-size: 11px; line-height: 1.25; }
+.repayment-swatch { display: block; width: 10px; height: 10px; border-radius: 999px; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06); }
+.repayment-name { color: #4e5864; }
+.repayment-chart-panel { grid-column: auto; }
+.recharts-default-tooltip { color: #34332f; background: rgba(251, 250, 247, 0.96) !important; border: 1px solid #e8e6e0 !important; border-radius: 8px; font-size: 11px; box-shadow: 0 12px 24px rgba(18, 32, 46, 0.08); transition: opacity .14s ease, transform .14s ease; }
+.recharts-tooltip-wrapper { transition: opacity .14s ease, transform .14s ease; }
+.recharts-tooltip-wrapper:hover { opacity: 1; }
+.empty-chart-panel { background: #fbfcfd; }
+.empty-chart-body { display: flex; align-items: center; justify-content: center; height: 100%; }
+.empty-chart-state { display: grid; justify-items: center; gap: 7px; padding: 18px 12px; text-align: center; }
+.empty-chart-icon { display: grid; place-items: center; width: 36px; height: 36px; color: #6989a3; background: #edf4f8; border: 1px solid #dfeaf1; border-radius: 10px; font-size: 18px; line-height: 1; }
+.empty-chart-state strong { color: #3f434a; font-size: 12px; }
+.empty-chart-state span { max-width: 240px; color: #8a9199; font-size: 10px; line-height: 1.5; }
+.dashboard-skeleton-card { overflow: hidden; }
+.dashboard-skeleton-chart { display: grid; gap: 10px; }
+@media (max-width: 1080px) { .dashboard-charts { grid-template-columns: repeat(2, minmax(0, 1fr)); } .repayment-chart-panel { grid-column: span 2; } }
+@media (max-width: 900px) { .dashboard-charts { grid-template-columns: 1fr; } .repayment-chart-panel { grid-column: auto; } .status-chart, .repayment-body { height: auto; min-height: 430px; }.status-chart-layout, .repayment-chart-layout { grid-template-columns: 1fr; gap: 18px; height: auto; }.donut-shell, .repayment-donut-shell { max-width: 200px; height: 180px; }.status-list, .repayment-list { gap: 10px; width: min(100%, 420px); margin-inline: auto; } }
+@media (max-width: 560px) { .chart-panel { padding: 15px; } .chart-body, .status-chart, .repayment-body { height: 230px; } .status-item, .repayment-item { grid-template-columns: 10px minmax(0, 1fr) auto auto; } .chart-header { align-items: flex-start; flex-direction: column; } .chart-period { width: 100%; } }
