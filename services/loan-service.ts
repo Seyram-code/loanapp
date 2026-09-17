@@ -90,14 +90,17 @@ export async function getLoanById(id: string) {
 export async function createLoan(input: unknown, userId: string) {
   const data = loanCreateSchema.parse(input)
   return prisma.$transaction(async (transaction) => {
-    const [customer, loanType] = await Promise.all([
+    const [customer, referrer, loanType] = await Promise.all([
       transaction.customer.findUnique({ where: { id: data.customerId }, select: { id: true } }),
+      data.referredByCustomerId ? transaction.customer.findUnique({ where: { id: data.referredByCustomerId }, select: { id: true } }) : null,
       transaction.loanType.findUnique({ where: { id: data.loanTypeId }, select: { id: true } }),
     ])
     if (!customer) throw new Error('Selected customer was not found')
+    if (data.referredByCustomerId && !referrer) throw new Error('Selected referring customer was not found')
+    if (data.referredByCustomerId === data.customerId) throw new Error('A customer cannot refer themselves')
     if (!loanType) throw new Error('Selected loan type was not found')
     const loanNumber = await nextLoanNumber(transaction)
-    const loan = await transaction.loan.create({ data: { ...data, loanNumber, createdById: userId } })
+    const loan = await transaction.loan.create({ data: { ...data, referredByCustomerId: data.referredByCustomerId || undefined, loanNumber, createdById: userId } })
     await recordAudit(transaction, { userId, action: 'LOAN_CREATED', entity: 'Loan', entityId: loan.id, description: `Loan ${loanNumber} was created`, metadata: { loanNumber } })
     return loan
   })

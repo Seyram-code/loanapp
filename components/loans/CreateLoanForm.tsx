@@ -8,9 +8,9 @@ import './create-loan.css'
 
 type Customer = { id: string; name: string; customerNumber: string }
 type LoanType = { id: string; name: string; defaultInterestRate: string; defaultTerm: number; repaymentFrequency: string; minimumAmount: string; maximumAmount: string }
-type FormState = { customerId: string; loanTypeId: string; requestedAmount: string; interestRate: string; interestType: 'FLAT' | 'REDUCING_BALANCE'; term: string; termUnit: 'WEEK' | 'MONTH'; repaymentFrequency: string; purpose: string; applicationDate: string; notes: string }
+type FormState = { customerId: string; referredByCustomerId: string; loanTypeId: string; requestedAmount: string; interestRate: string; interestType: 'FLAT' | 'REDUCING_BALANCE'; term: string; termUnit: 'WEEK' | 'MONTH'; repaymentFrequency: string; purpose: string; applicationDate: string; notes: string }
 
-const initialForm: FormState = { customerId: '', loanTypeId: '', requestedAmount: '', interestRate: '', interestType: 'FLAT', term: '', termUnit: 'MONTH', repaymentFrequency: 'MONTHLY', purpose: '', applicationDate: new Date().toISOString().slice(0, 10), notes: '' }
+const initialForm: FormState = { customerId: '', referredByCustomerId: '', loanTypeId: '', requestedAmount: '', interestRate: '', interestType: 'FLAT', term: '', termUnit: 'MONTH', repaymentFrequency: 'MONTHLY', purpose: '', applicationDate: new Date().toISOString().slice(0, 10), notes: '' }
 
 async function logoutOnSessionExpiry() {
   await fetch('/api/auth/logout', { method: 'POST' })
@@ -64,20 +64,24 @@ export default function CreateLoanForm() {
   async function submit(event: FormEvent) {
     event.preventDefault()
     setPending(true)
-    const response = await fetch('/api/loans', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...form, requestedAmount: Number(form.requestedAmount), interestRate: Number(form.interestRate), term: Number(form.term), applicationDate: new Date(form.applicationDate) }) })
-    const result = await response.json()
-    if (!response.ok) {
-      if (response.status === 401) {
-        await logoutOnSessionExpiry()
+    try {
+      const response = await fetch('/api/loans', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...form, requestedAmount: Number(form.requestedAmount), interestRate: Number(form.interestRate), term: Number(form.term), applicationDate: new Date(form.applicationDate) }) })
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        if (response.status === 401) {
+          await logoutOnSessionExpiry()
+          return
+        }
+        setError(result.error || 'Please check the loan details.')
         return
       }
-      setError(result.error || 'Please check the loan details.')
+      setSuccess(`Loan ${result.loanNumber} created successfully.`)
+      setForm(initialForm)
+    } catch {
+      setError('Unable to reach the server. Please try again.')
+    } finally {
       setPending(false)
-      return
     }
-    setSuccess(`Loan ${result.loanNumber} created successfully.`)
-    setPending(false)
-    setForm(initialForm)
   }
 
   return <main className="create-loan-page">
@@ -86,7 +90,8 @@ export default function CreateLoanForm() {
     <div className="create-loan-grid">
       <form className="create-loan-form panel" onSubmit={submit}>
         <div className="settings-section-title"><div><h2>Loan details</h2><p>Review the estimate before submitting.</p></div></div>
-        <label>Customer<select required value={form.customerId} onChange={(event) => update('customerId', event.target.value)}><option value="">Select customer</option>{customers.map((customer) => <option key={customer.id} value={customer.id}>{customer.customerNumber} - {customer.name}</option>)}</select></label>
+        <label>Customer<select required value={form.customerId} onChange={(event) => { const customerId = event.target.value; setForm((current) => ({ ...current, customerId, referredByCustomerId: current.referredByCustomerId === customerId ? '' : current.referredByCustomerId })); setError(''); setSuccess('') }}><option value="">Select customer</option>{customers.map((customer) => <option key={customer.id} value={customer.id}>{customer.customerNumber} - {customer.name}</option>)}</select></label>
+        <label>Referred by <span className="field-hint">Optional</span><select value={form.referredByCustomerId} onChange={(event) => update('referredByCustomerId', event.target.value)}><option value="">No referral</option>{customers.filter((customer) => customer.id !== form.customerId).map((customer) => <option key={customer.id} value={customer.id}>{customer.customerNumber} - {customer.name}</option>)}</select></label>
         <label>Loan type<select required value={form.loanTypeId} onChange={(event) => { const type = loanTypes.find((item) => item.id === event.target.value); update('loanTypeId', event.target.value); if (type) setForm((current) => ({ ...current, loanTypeId: type.id, interestRate: String(type.defaultInterestRate), term: String(type.defaultTerm), repaymentFrequency: type.repaymentFrequency })) }}><option value="">Select loan type</option>{loanTypes.map((type) => <option key={type.id} value={type.id}>{type.name}</option>)}</select></label>
         <div className="settings-form-row"><label>Requested amount<input required type="number" min="100" max={selectedType?.maximumAmount} step="0.01" value={form.requestedAmount} onChange={(event) => update('requestedAmount', event.target.value)} /></label><label>Application date<input required type="date" value={form.applicationDate} onChange={(event) => update('applicationDate', event.target.value)} /></label></div>
         <div className="settings-form-row"><label>Interest rate (%)<input required type="number" min="0" max="100" step="0.01" value={form.interestRate} onChange={(event) => update('interestRate', event.target.value)} /></label><label>Interest type<select value={form.interestType} onChange={(event) => update('interestType', event.target.value)}><option value="FLAT">Flat</option><option value="REDUCING_BALANCE">Reducing balance</option></select></label></div>

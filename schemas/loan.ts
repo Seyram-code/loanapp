@@ -11,6 +11,7 @@ export const loanFiltersSchema = z.object({
 
 export const loanCreateSchema = z.object({
   customerId: idSchema,
+  referredByCustomerId: idSchema.optional().or(z.literal('')),
   loanTypeId: idSchema,
   requestedAmount: amountSchema.min(100, 'Requested amount must be at least 100'),
   approvedAmount: amountSchema.optional(),

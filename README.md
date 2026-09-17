@@ -37,7 +37,7 @@ This is a server-rendered Next.js application and must be deployed to a Node.js 
 1. Create a production MySQL or MariaDB database. Do not use the local development database or enable demo seeding in production.
 2. Create a private Git repository and push this project. `.env` is ignored and must never be committed.
 3. Import the repository into the hosting provider. Use `npm run build` as the build command and `npm run start` as the start command for a Node.js host.
-4. Add these production environment variables: `DATABASE_URL`, `AUTH_SECRET`, `SUPER_ADMIN_EMAIL`, `SUPER_ADMIN_PASSWORD`, `ADMIN_EMAIL`, and `ADMIN_PASSWORD`.
+4. Add these production environment variables: `DATABASE_URL`, `DATABASE_SSL=true`, `AUTH_SECRET`, `SUPER_ADMIN_EMAIL`, `SUPER_ADMIN_PASSWORD`, `ADMIN_EMAIL`, and `ADMIN_PASSWORD`.
 5. Set `SEED_DEMO_DATA` to `false` or omit it. Use a long random `AUTH_SECRET` and strong unique administrator passwords.
 6. Before the first release, run `npm run db:migrate:deploy` against the production database from a trusted environment with the production `DATABASE_URL`. Do not run `npm run db:migrate` in production.
 7. Deploy, open `/login`, sign in, and verify login, customer creation and editing, profile navigation, loan actions, repayment recording, and logout.

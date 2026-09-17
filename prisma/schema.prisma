@@ -181,6 +181,7 @@ model Customer {
   createdAt                     DateTime       @default(now())
   updatedAt                     DateTime       @updatedAt
   loans                         Loan[]
+  referredLoans                 Loan[]         @relation("CustomerReferrals")
   repayments                    Repayment[]
 
   @@index([lastName, firstName])
@@ -194,6 +195,8 @@ model Loan {
   loanNumber          String             @unique @db.VarChar(32)
   customerId          String
   customer            Customer           @relation(fields: [customerId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  referredByCustomerId String?
+  referredByCustomer   Customer?          @relation("CustomerReferrals", fields: [referredByCustomerId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   loanTypeId          String
   loanType            LoanType           @relation(fields: [loanTypeId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   requestedAmount     Decimal            @db.Decimal(14, 2)
@@ -224,6 +227,7 @@ model Loan {
   disbursements       LoanDisbursement[]
 
   @@index([customerId, status])
+  @@index([referredByCustomerId])
   @@index([loanTypeId, status])
   @@index([createdById, createdAt])
   @@index([approvedById, approvalDate])

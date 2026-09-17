@@ -30,6 +30,8 @@ const safeMessages = new Set([
   'Disbursement exceeds approved amount',
   'Rejection reason is required',
   'Selected customer was not found',
+  'Selected referring customer was not found',
+  'A customer cannot refer themselves',
   'Selected loan type was not found',
   'Current password is incorrect',
   'You cannot deactivate your own account',
