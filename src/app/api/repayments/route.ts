@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { requirePermission } from '@/lib/authorization'
 import { createRepayment, listRepayments } from '@/services/repayment-service'
-import { safeErrorResponse, unauthorizedResponse } from '@/utils/api-response'
+import { safeErrorResponse } from '@/utils/api-response'
 
 export const runtime = 'nodejs'
 
@@ -17,8 +17,8 @@ export async function GET(request: Request) {
       page: Number(url.searchParams.get('page') ?? 1),
       pageSize: Number(url.searchParams.get('pageSize') ?? 10),
     }))
-  } catch {
-    return unauthorizedResponse()
+  } catch (error) {
+    return safeErrorResponse(error, 'GET /api/repayments')
   }
 }
 

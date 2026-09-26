@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { requirePermission } from '@/lib/authorization'
 import { prisma } from '@/lib/prisma'
-import { safeErrorResponse, unauthorizedResponse } from '@/utils/api-response'
+import { safeErrorResponse } from '@/utils/api-response'
 
 export const runtime = 'nodejs'
 
@@ -13,7 +13,6 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
     if (!customer) return NextResponse.json({ error: 'Customer not found' }, { status: 404 })
     return NextResponse.json({ customer: { ...customer, monthlyIncome: customer.monthlyIncome?.toFixed(2) ?? null } })
   } catch (error) {
-    if (error instanceof Error && error.message.includes('Unauthorized')) return unauthorizedResponse()
     return safeErrorResponse(error, 'GET /api/customers/[id]/details')
   }
 }

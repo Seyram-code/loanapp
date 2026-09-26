@@ -3,9 +3,12 @@
 import { FormEvent, useEffect, useState } from 'react'
 import { Check, X } from 'lucide-react'
 import { useToast } from '@/components/ui/ToastProvider'
+import { formatGhanaNationalId, isValidGhanaNationalId } from '@/schemas/customer'
 
 type CustomerFormProps = { customerId?: string; onClose: () => void; onCreated: (customerNumber: string) => void }
+type ReferrerOption = { id: string; customerNumber: string; name: string }
 type FormState = {
+  referredByCustomerId: string
   firstName: string
   middleName: string
   lastName: string
@@ -47,6 +50,7 @@ const ghanaRegions = [
 ]
 
 const initialForm: FormState = {
+  referredByCustomerId: '',
   firstName: '',
   middleName: '',
   lastName: '',
@@ -74,8 +78,15 @@ export default function CustomerForm({ customerId, onClose, onCreated }: Custome
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
+  const [referrers, setReferrers] = useState<ReferrerOption[]>([])
 
   useEffect(() => {
+    if (!customerId) {
+      fetch('/api/customers?pageSize=50&sort=name&direction=asc')
+        .then((response) => response.ok ? response.json() : null)
+        .then((result) => setReferrers(result?.customers ?? []))
+        .catch(() => setReferrers([]))
+    }
     if (!customerId) return
     fetch(`/api/customers/${customerId}/details`).then((response) => response.ok ? response.json() : null).then((result) => {
       if (!result?.customer) {
@@ -84,6 +95,7 @@ export default function CustomerForm({ customerId, onClose, onCreated }: Custome
       }
       const customer = result.customer
       setForm({
+        referredByCustomerId: '',
         firstName: customer.firstName ?? '',
         middleName: customer.middleName ?? '',
         lastName: customer.lastName ?? '',
@@ -108,6 +120,16 @@ export default function CustomerForm({ customerId, onClose, onCreated }: Custome
   }, [customerId])
 
   function update(field: keyof FormState, value: string) {
+    if (field === 'nationalId') {
+      const nextValue = formatGhanaNationalId(value)
+      setForm((current) => ({ ...current, [field]: nextValue }))
+      setErrors((current) => ({ ...current, [field]: '' }))
+      setError('')
+      return
+    }
+
+    if (field === 'phone') value = value.replace(/\D/g, '').slice(0, 10)
+
     setForm((current) => ({ ...current, [field]: value }))
     setErrors((current) => ({ ...current, [field]: '' }))
     setError('')
@@ -133,10 +155,15 @@ export default function CustomerForm({ customerId, onClose, onCreated }: Custome
 
     if (!form.gender) next.gender = 'Gender is required'
     if (!form.phone.trim()) next.phone = 'Phone is required'
+    else if (!/^\d{10}$/.test(form.phone)) next.phone = 'Phone number must be exactly 10 digits'
     if (!form.address.trim()) next.address = 'Address is required'
     if (!form.city.trim()) next.city = 'City is required'
     if (!form.region.trim()) next.region = 'Region is required'
-    if (!form.nationalId.trim()) next.nationalId = 'National ID is required'
+    if (!form.nationalId.trim()) {
+      next.nationalId = 'National ID is required'
+    } else if (!isValidGhanaNationalId(form.nationalId)) {
+      next.nationalId = 'National ID must match GHA-123456789-1 format'
+    }
     if (!form.occupation.trim()) next.occupation = 'Occupation is required'
     if (!form.employer.trim()) next.employer = 'Employer is required'
 
@@ -166,6 +193,7 @@ export default function CustomerForm({ customerId, onClose, onCreated }: Custome
 
     const payload = {
       ...form,
+      referredByCustomerId: !customerId && form.referredByCustomerId ? form.referredByCustomerId : undefined,
       firstName: form.firstName.trim(),
       middleName: form.middleName.trim() || undefined,
       lastName: form.lastName.trim(),
@@ -177,7 +205,7 @@ export default function CustomerForm({ customerId, onClose, onCreated }: Custome
       address: form.address.trim(),
       city: form.city.trim(),
       region: form.region.trim(),
-      nationalId: form.nationalId.trim(),
+      nationalId: formatGhanaNationalId(form.nationalId.trim()),
       occupation: form.occupation.trim(),
       employer: form.employer.trim(),
       monthlyIncome: Number(form.monthlyIncome),
@@ -206,7 +234,7 @@ export default function CustomerForm({ customerId, onClose, onCreated }: Custome
     setPending(false)
   }
 
-  const field = (label: string, key: keyof FormState, props: Record<string, string | boolean> = {}) => (
+  const field = (label: string, key: keyof FormState, props: Record<string, string | number | boolean> = {}) => (
     <label className={errors[key] ? 'has-error' : ''}>
       {label}
       <input value={form[key]} onChange={(event) => update(key, event.target.value)} {...props} />
@@ -229,6 +257,14 @@ export default function CustomerForm({ customerId, onClose, onCreated }: Custome
         </header>
 
         <form className="customer-form" onSubmit={submit}>
+          {!customerId && <label>
+            Referred by (optional)
+            <select value={form.referredByCustomerId} onChange={(event) => update('referredByCustomerId', event.target.value)}>
+              <option value="">Select an existing customer</option>
+              {referrers.map((referrer) => <option key={referrer.id} value={referrer.id}>{referrer.customerNumber} - {referrer.name}</option>)}
+            </select>
+          </label>}
+
           <div className="settings-form-row">
             {field('First name', 'firstName', { required: true })}
             {field('Middle name', 'middleName')}
@@ -255,11 +291,11 @@ export default function CustomerForm({ customerId, onClose, onCreated }: Custome
               </select>
               {errors.gender && <small>{errors.gender}</small>}
             </label>
-            {field('National ID', 'nationalId', { required: true })}
+            {field('National ID', 'nationalId', { required: true, placeholder: 'GHA-123456789-1', inputMode: 'numeric' })}
           </div>
 
           <div className="settings-form-row">
-            {field('Phone', 'phone', { required: true })}
+            {field('Phone number', 'phone', { required: true, type: 'tel', inputMode: 'numeric', maxLength: 10, pattern: '[0-9]{10}', placeholder: '0241234567' })}
             {field('Alternate phone', 'alternatePhone')}
           </div>
 

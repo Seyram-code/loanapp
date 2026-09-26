@@ -13,6 +13,7 @@ const navigationPaths = [
 	{ label: 'Loans', path: '/loans' },
 	{ label: 'Repayments', path: '/repayments' },
 	{ label: 'Reports', path: '/reports' },
+	{ label: 'Audit Logs', path: '/audit-logs' },
 	{ label: 'Notifications', path: '/notifications' },
 	{ label: 'Users', path: '/users' },
 	{ label: 'Settings', path: '/settings' },

@@ -5,6 +5,7 @@ const loanTypeFields = {
   description: z.string().trim().max(5000).optional(),
   defaultInterestRate: z.number().min(0).max(100),
   defaultTerm: z.number().int().positive().max(120),
+  defaultTermUnit: z.enum(['DAY', 'WEEK', 'MONTH']),
   repaymentFrequency: z.enum(['DAILY', 'WEEKLY', 'BIWEEKLY', 'MONTHLY', 'QUARTERLY']),
   minimumAmount: z.number().nonnegative(),
   maximumAmount: z.number().positive(),

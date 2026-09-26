@@ -1,8 +1,9 @@
 import { Prisma } from '@prisma/client'
+import { calculateRepaymentDueDates } from '../utils/repayment-dates'
 
 export type InterestMethod = 'FLAT' | 'REDUCING_BALANCE'
 export type RepaymentFrequency = 'DAILY' | 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY' | 'QUARTERLY'
-export type LoanTermUnit = 'WEEK' | 'MONTH'
+export type LoanTermUnit = 'DAY' | 'WEEK' | 'MONTH'
 
 export type FinancialLoanTerms = {
   requestedAmount: Prisma.Decimal
@@ -35,22 +36,17 @@ const periodsPerYear: Record<RepaymentFrequency, number> = {
 const zero = () => new Prisma.Decimal(0)
 const money = (value: Prisma.Decimal) => value.toDecimalPlaces(2)
 
-function addPeriod(date: Date, frequency: RepaymentFrequency) {
-  const next = new Date(date)
-  if (frequency === 'DAILY') next.setUTCDate(next.getUTCDate() + 1)
-  if (frequency === 'WEEKLY') next.setUTCDate(next.getUTCDate() + 7)
-  if (frequency === 'BIWEEKLY') next.setUTCDate(next.getUTCDate() + 14)
-  if (frequency === 'MONTHLY') next.setUTCMonth(next.getUTCMonth() + 1)
-  if (frequency === 'QUARTERLY') next.setUTCMonth(next.getUTCMonth() + 3)
-  return next
-}
-
 export function principalAmount(terms: FinancialLoanTerms) {
   return terms.approvedAmount ?? terms.requestedAmount
 }
 
 export function calculateFlatInterest(principal: Prisma.Decimal, rate: Prisma.Decimal) {
   return money(principal.mul(rate).div(100))
+}
+
+export function calculateTermFlatInterest(terms: FinancialLoanTerms, principal = principalAmount(terms)) {
+  const termMultiplier = terms.termUnit === 'DAY' ? terms.term : 1
+  return money(calculateFlatInterest(principal, terms.interestRate).mul(termMultiplier))
 }
 
 export function calculateReducingInstallment(principal: Prisma.Decimal, annualRate: Prisma.Decimal, term: number, frequency: RepaymentFrequency) {
@@ -62,7 +58,7 @@ export function calculateReducingInstallment(principal: Prisma.Decimal, annualRa
 
 export function calculateInstallmentAmount(terms: FinancialLoanTerms) {
   const principal = principalAmount(terms)
-  if (terms.interestType === 'FLAT') return money(principal.add(calculateFlatInterest(principal, terms.interestRate)).div(terms.term))
+  if (terms.interestType === 'FLAT') return money(principal.add(calculateTermFlatInterest(terms, principal)).div(terms.term))
   return calculateReducingInstallment(principal, terms.interestRate, terms.term, terms.repaymentFrequency)
 }
 
@@ -70,7 +66,7 @@ export function calculateLoanFinancials(terms: FinancialLoanTerms) {
   const principal = principalAmount(terms)
   const installment = calculateInstallmentAmount(terms)
   const totalRepayment = terms.interestType === 'FLAT'
-    ? money(principal.add(calculateFlatInterest(principal, terms.interestRate)))
+    ? money(principal.add(calculateTermFlatInterest(terms, principal)))
     : money(installment.mul(terms.term))
   return { principal: money(principal), interest: money(totalRepayment.sub(principal)), totalRepayment, installment }
 }
@@ -78,9 +74,10 @@ export function calculateLoanFinancials(terms: FinancialLoanTerms) {
 export function buildRepaymentSchedule(terms: FinancialLoanTerms, startDate: Date) {
   const principal = principalAmount(terms)
   const rows: RepaymentScheduleCalculation[] = []
+  const dueDates = calculateRepaymentDueDates(startDate, terms.term, terms.repaymentFrequency)
   let principalBalance = principal
   const installment = calculateInstallmentAmount(terms)
-  const flatInterest = terms.interestType === 'FLAT' ? calculateFlatInterest(principal, terms.interestRate) : zero()
+  const flatInterest = terms.interestType === 'FLAT' ? calculateTermFlatInterest(terms, principal) : zero()
   const regularPrincipal = money(principal.div(terms.term))
   const regularInterest = terms.interestType === 'FLAT' ? money(flatInterest.div(terms.term)) : zero()
   const periodicRate = terms.interestRate.div(100).div(periodsPerYear[terms.repaymentFrequency])
@@ -95,7 +92,7 @@ export function buildRepaymentSchedule(terms: FinancialLoanTerms, startDate: Dat
       : money(principalBalance.mul(periodicRate))
     const expectedAmount = money(principalPart.add(interestPart))
     principalBalance = money(principalBalance.sub(principalPart))
-    rows.push({ installmentNumber: number, dueDate: addPeriod(rows.at(-1)?.dueDate ?? startDate, terms.repaymentFrequency), expectedAmount, principalAmount: money(principalPart), interestAmount: interestPart, amountPaid: zero(), remainingAmount: expectedAmount })
+    rows.push({ installmentNumber: number, dueDate: dueDates[number - 1], expectedAmount, principalAmount: money(principalPart), interestAmount: interestPart, amountPaid: zero(), remainingAmount: expectedAmount })
   }
   return rows
 }

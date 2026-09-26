@@ -15,6 +15,9 @@ async function nextCustomerNumber(transaction: Parameters<Parameters<typeof pris
 export async function createCustomer(input: CustomerCreateInput, userId: string) {
   const data = customerCreateSchema.parse(input)
   return prisma.$transaction(async (transaction) => {
+    if (data.referredByCustomerId && !await transaction.customer.findUnique({ where: { id: data.referredByCustomerId }, select: { id: true } })) {
+      throw new Error('Referring customer was not found')
+    }
     const customerNumber = await nextCustomerNumber(transaction)
     const customer = await transaction.customer.create({ data: { ...data, customerNumber } })
     await recordAudit(transaction, { userId, action: 'CUSTOMER_CREATED', entity: 'Customer', entityId: customer.id, description: `Customer ${customerNumber} was created`, metadata: { customerNumber } })

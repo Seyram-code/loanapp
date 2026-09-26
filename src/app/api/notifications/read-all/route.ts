@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { requirePermission } from '@/lib/authorization'
 import { markAllNotificationsRead } from '@/services/notification-service'
-import { unauthorizedResponse } from '@/utils/api-response'
+import { safeErrorResponse } from '@/utils/api-response'
 
 export const runtime = 'nodejs'
 
@@ -10,7 +10,7 @@ export async function POST() {
     const session = await requirePermission('notifications.manage')
     await markAllNotificationsRead(session.userId)
     return NextResponse.json({ success: true })
-  } catch {
-    return unauthorizedResponse()
+  } catch (error) {
+    return safeErrorResponse(error, 'POST /api/notifications/read-all')
   }
 }

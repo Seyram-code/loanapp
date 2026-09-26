@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { requirePermission } from '@/lib/authorization'
 import { clearReadNotifications, listNotifications } from '@/services/notification-service'
-import { badRequestResponse, forbiddenResponse, unauthorizedResponse } from '@/utils/api-response'
+import { badRequestResponse, safeErrorResponse } from '@/utils/api-response'
 
 export const runtime = 'nodejs'
 
@@ -12,8 +12,7 @@ export async function GET(request: Request) {
     const unreadOnly = url.searchParams.get('unread') === 'true'
     return NextResponse.json(await listNotifications(session.userId, unreadOnly, Number(url.searchParams.get('page') ?? 1), Number(url.searchParams.get('pageSize') ?? 10)))
   } catch (error) {
-    if (error instanceof Error && error.message === 'Forbidden') return forbiddenResponse()
-    return unauthorizedResponse()
+    return safeErrorResponse(error, 'GET /api/notifications')
   }
 }
 
@@ -25,7 +24,6 @@ export async function DELETE(request: Request) {
     await clearReadNotifications(session.userId)
     return NextResponse.json({ success: true })
   } catch (error) {
-    if (error instanceof Error && error.message === 'Forbidden') return forbiddenResponse()
-    return unauthorizedResponse()
+    return safeErrorResponse(error, 'DELETE /api/notifications')
   }
 }

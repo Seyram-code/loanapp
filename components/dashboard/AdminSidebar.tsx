@@ -1,7 +1,7 @@
  'use client'
 
 import { useEffect } from 'react'
-import { BarChart3, Bell, ChevronDown, ChevronLeft, ChevronRight, CircleDollarSign, LayoutDashboard, LogOut, Settings, ShieldCheck, UsersRound, WalletCards, X } from 'lucide-react'
+import { BarChart3, Bell, ChevronDown, ChevronLeft, ChevronRight, CircleDollarSign, FileText, LayoutDashboard, LogOut, Settings, ShieldCheck, UsersRound, WalletCards, X } from 'lucide-react'
 import Link from 'next/link'
 import { brandIcon } from '../../config/navigation'
 
@@ -13,6 +13,7 @@ const navigation = [
 	{ label: 'Loans', href: '/loans', icon: WalletCards },
 	{ label: 'Repayments', href: '/repayments', icon: CircleDollarSign },
 	{ label: 'Reports', href: '/reports', icon: BarChart3 },
+	{ label: 'Audit Logs', href: '/audit-logs', icon: FileText },
 	{ label: 'Notifications', href: '/notifications', icon: Bell },
 	{ label: 'Users', href: '/users', icon: ShieldCheck },
 	{ label: 'Settings', href: '/settings', icon: Settings },

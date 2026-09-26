@@ -48,6 +48,7 @@ enum RepaymentFrequency {
 }
 
 enum LoanTermUnit {
+  DAY
   WEEK
   MONTH
 }
@@ -178,6 +179,9 @@ model Customer {
   emergencyContactRelationship  String?        @db.VarChar(80)
   status                        CustomerStatus @default(ACTIVE)
   notes                         String?        @db.Text
+  referredByCustomerId          String?
+  referredBy                    Customer?      @relation("CustomerReferrals", fields: [referredByCustomerId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  referredCustomers             Customer[]     @relation("CustomerReferrals")
   createdAt                     DateTime       @default(now())
   updatedAt                     DateTime       @updatedAt
   loans                         Loan[]
@@ -187,6 +191,7 @@ model Customer {
   @@index([phone])
   @@index([email])
   @@index([status, createdAt])
+  @@index([referredByCustomerId])
 }
 
 model Loan {
@@ -194,6 +199,9 @@ model Loan {
   loanNumber          String             @unique @db.VarChar(32)
   customerId          String
   customer            Customer           @relation(fields: [customerId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  rolloverFromLoanId  String?            @unique
+  rolloverFromLoan    Loan?              @relation("LoanRollover", fields: [rolloverFromLoanId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  rolloverToLoan      Loan?              @relation("LoanRollover")
   loanTypeId          String
   loanType            LoanType           @relation(fields: [loanTypeId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   requestedAmount     Decimal            @db.Decimal(14, 2)
@@ -239,6 +247,7 @@ model LoanType {
   description           String?             @db.Text
   defaultInterestRate   Decimal             @db.Decimal(5, 2)
   defaultTerm           Int
+  defaultTermUnit       LoanTermUnit        @default(MONTH)
   repaymentFrequency    RepaymentFrequency
   minimumAmount         Decimal             @db.Decimal(14, 2)
   maximumAmount         Decimal             @db.Decimal(14, 2)

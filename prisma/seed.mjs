@@ -27,9 +27,9 @@ const accounts = [
 ]
 
 const loanTypes = [
-  { name: 'Personal Loan', description: 'Flexible lending for personal expenses.', defaultInterestRate: '12.00', defaultTerm: 12, repaymentFrequency: 'MONTHLY', minimumAmount: '500.00', maximumAmount: '50000.00' },
-  { name: 'Business Loan', description: 'Working capital for small businesses.', defaultInterestRate: '10.00', defaultTerm: 18, repaymentFrequency: 'MONTHLY', minimumAmount: '5000.00', maximumAmount: '250000.00' },
-  { name: 'Emergency Loan', description: 'Short-term support for urgent expenses.', defaultInterestRate: '8.00', defaultTerm: 3, repaymentFrequency: 'MONTHLY', minimumAmount: '200.00', maximumAmount: '10000.00' },
+  { name: 'Personal Loan', description: 'Flexible lending for personal expenses.', defaultInterestRate: '12.00', defaultTerm: 12, defaultTermUnit: 'MONTH', repaymentFrequency: 'MONTHLY', minimumAmount: '500.00', maximumAmount: '50000.00' },
+  { name: 'Business Loan', description: 'Working capital for small businesses.', defaultInterestRate: '10.00', defaultTerm: 18, defaultTermUnit: 'MONTH', repaymentFrequency: 'MONTHLY', minimumAmount: '5000.00', maximumAmount: '250000.00' },
+  { name: 'Emergency Loan', description: 'Short-term support for urgent expenses.', defaultInterestRate: '8.00', defaultTerm: 3, defaultTermUnit: 'MONTH', repaymentFrequency: 'MONTHLY', minimumAmount: '200.00', maximumAmount: '10000.00' },
 ]
 
 const demoCustomers = [

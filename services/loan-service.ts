@@ -5,6 +5,7 @@ import { loanCreateSchema } from '../schemas/loan'
 import { disbursementCreateSchema } from '../schemas/disbursement'
 import { generateRepaymentSchedule } from './repayment-schedule-service'
 import { calculateLoanFinancials, calculateOutstandingBalance, calculatePaidAmount, calculateTotalRepayment } from './financial-calculation-service'
+import { calculateRepaymentDueDates } from '../utils/repayment-dates'
 
 async function nextLoanNumber(transaction: Parameters<Parameters<typeof prisma.$transaction>[0]>[0]) {
   const sequence = await transaction.numberSequence.upsert({
@@ -24,8 +25,13 @@ export async function searchLoans(options: { query?: string; status?: string; lo
   const statusMap: Record<string, string> = { PENDING: 'PENDING', 'UNDER REVIEW': 'UNDER_REVIEW', APPROVED: 'APPROVED', ACTIVE: 'ACTIVE', COMPLETED: 'COMPLETED', REJECTED: 'REJECTED', DEFAULTED: 'DEFAULTED' }
   const where: Prisma.LoanWhereInput = { ...(virtualOverdue ? { repaymentSchedules: { some: { status: 'OVERDUE' } } } : options.status && statusMap[options.status] ? { status: statusMap[options.status] as never } : {}), ...(options.loanTypeId ? { loanTypeId: options.loanTypeId } : {}), ...(options.startDate || options.endDate ? { applicationDate: { ...(options.startDate ? { gte: new Date(`${options.startDate}T00:00:00.000Z`) } : {}), ...(options.endDate ? { lte: new Date(`${options.endDate}T23:59:59.999Z`) } : {}) } } : {}), ...(query ? { OR: [{ loanNumber: { contains: query } }, { customer: { firstName: { contains: query } } }, { customer: { lastName: { contains: query } } }, { loanType: { name: { contains: query } } }] } : {}) }
   const orderBy = options.sort === 'amount' ? { requestedAmount: options.direction ?? 'desc' as const } : options.sort === 'status' ? { status: options.direction ?? 'asc' as const } : { createdAt: options.direction ?? 'desc' as const }
-  const [rows, total] = await prisma.$transaction([prisma.loan.findMany({ where, select: { id: true, loanNumber: true, requestedAmount: true, approvedAmount: true, interestRate: true, term: true, termUnit: true, status: true, createdAt: true, maturityDate: true, customer: { select: { firstName: true, lastName: true } }, loanType: { select: { name: true } }, repaymentSchedules: { select: { remainingAmount: true, dueDate: true, status: true } } }, orderBy, skip: (page - 1) * pageSize, take: pageSize }), prisma.loan.count({ where })])
-  return { loans: rows.map((loan) => ({ id: loan.id, loanNumber: loan.loanNumber, customer: [loan.customer.firstName, loan.customer.lastName].join(' '), loanType: loan.loanType.name, amount: (loan.approvedAmount ?? loan.requestedAmount).toFixed(2), interest: `${loan.interestRate.toFixed(2)}%`, term: `${loan.term} ${loan.termUnit === 'WEEK' ? 'wk' : 'mo'}`, outstanding: loan.repaymentSchedules.reduce((sum, schedule) => sum.add(schedule.remainingAmount), new Prisma.Decimal(0)).toFixed(2), dueDate: loan.repaymentSchedules.filter((schedule) => schedule.status !== 'PAID' && schedule.status !== 'WAIVED').sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime())[0]?.dueDate?.toISOString() ?? loan.maturityDate?.toISOString() ?? null, status: virtualOverdue || loan.repaymentSchedules.some((schedule) => schedule.status === 'OVERDUE') ? 'OVERDUE' : loan.status, createdAt: loan.createdAt.toISOString() })), total, page, pageSize, totalPages: Math.ceil(total / pageSize) }
+  const [rows, total] = await prisma.$transaction([prisma.loan.findMany({ where, select: { id: true, loanNumber: true, requestedAmount: true, approvedAmount: true, interestRate: true, term: true, termUnit: true, repaymentFrequency: true, applicationDate: true, status: true, createdAt: true, maturityDate: true, customer: { select: { firstName: true, lastName: true } }, loanType: { select: { name: true } }, repaymentSchedules: { select: { remainingAmount: true, dueDate: true, status: true } } }, orderBy, skip: (page - 1) * pageSize, take: pageSize }), prisma.loan.count({ where })])
+  return { loans: rows.map((loan) => {
+    const scheduledFinalDate = [...loan.repaymentSchedules].sort((a, b) => b.dueDate.getTime() - a.dueDate.getTime())[0]?.dueDate
+    const projectedFinalDate = calculateRepaymentDueDates(loan.applicationDate, loan.term, loan.repaymentFrequency).at(-1)
+    const finalDueDate = scheduledFinalDate ?? loan.maturityDate ?? projectedFinalDate ?? null
+    return { id: loan.id, loanNumber: loan.loanNumber, customer: [loan.customer.firstName, loan.customer.lastName].join(' '), loanType: loan.loanType.name, amount: (loan.approvedAmount ?? loan.requestedAmount).toFixed(2), interest: `${loan.interestRate.toFixed(2)}%`, term: `${loan.term} ${loan.termUnit === 'DAY' ? (loan.term === 1 ? 'day' : 'days') : loan.termUnit === 'WEEK' ? (loan.term === 1 ? 'wk' : 'wks') : (loan.term === 1 ? 'mo' : 'mos')}`, outstanding: loan.repaymentSchedules.reduce((sum, schedule) => sum.add(schedule.remainingAmount), new Prisma.Decimal(0)).toFixed(2), dueDate: finalDueDate?.toISOString() ?? null, isDueDateProjected: !scheduledFinalDate && !loan.maturityDate, status: virtualOverdue || loan.repaymentSchedules.some((schedule) => schedule.status === 'OVERDUE') ? 'OVERDUE' : loan.status, createdAt: loan.createdAt.toISOString() }
+  }), total, page, pageSize, totalPages: Math.ceil(total / pageSize) }
 }
 
 export async function getLoanById(id: string) {
@@ -37,6 +43,7 @@ export async function getLoanById(id: string) {
       repayments: true,
       disbursements: true,
       repaymentSchedules: true,
+      rolloverToLoan: { select: { id: true, loanNumber: true, status: true } },
       createdBy: { select: { name: true } },
       approvedBy: { select: { name: true } },
       disbursedBy: { select: { name: true } },
@@ -46,6 +53,8 @@ export async function getLoanById(id: string) {
   if (!loan) return null
 
   const principal = loan.approvedAmount ?? loan.requestedAmount
+  const scheduledMaturityDate = loan.repaymentSchedules.reduce<Date | null>((latest, schedule) => !latest || schedule.dueDate > latest ? schedule.dueDate : latest, null)
+  const maturityDate = scheduledMaturityDate ?? loan.maturityDate
   const calculatedFinancials = calculateLoanFinancials(loan)
   const scheduledTotal = calculateTotalRepayment(loan.repaymentSchedules)
   const totalRepayment = loan.repaymentSchedules.length > 0 ? scheduledTotal : calculatedFinancials.totalRepayment
@@ -71,13 +80,14 @@ export async function getLoanById(id: string) {
     totalRepayment: totalRepayment.toFixed(2),
     amountPaid: amountPaid.toFixed(2),
     outstanding: outstanding.toFixed(2),
-    term: `${loan.term} ${loan.termUnit === 'WEEK' ? (loan.term === 1 ? 'week' : 'weeks') : (loan.term === 1 ? 'month' : 'months')}`,
+    term: `${loan.term} ${loan.termUnit === 'DAY' ? (loan.term === 1 ? 'day' : 'days') : loan.termUnit === 'WEEK' ? (loan.term === 1 ? 'week' : 'weeks') : (loan.term === 1 ? 'month' : 'months')}`,
     repaymentFrequency: loan.repaymentFrequency.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase()),
     applicationDate: loan.applicationDate.toISOString(),
     approvalDate: loan.approvalDate?.toISOString() ?? null,
     disbursementDate: loan.disbursementDate?.toISOString() ?? null,
-    maturityDate: loan.maturityDate?.toISOString() ?? null,
+    maturityDate: maturityDate?.toISOString() ?? null,
     status: loan.status,
+    rolloverToLoan: loan.rolloverToLoan,
     rejectionReason: loan.rejectionReason ?? null,
     purpose: loan.purpose ?? null,
     notes: loan.notes ?? null,
@@ -92,15 +102,80 @@ export async function createLoan(input: unknown, userId: string) {
   return prisma.$transaction(async (transaction) => {
     const [customer, loanType] = await Promise.all([
       transaction.customer.findUnique({ where: { id: data.customerId }, select: { id: true } }),
-      transaction.loanType.findUnique({ where: { id: data.loanTypeId }, select: { id: true } }),
+      transaction.loanType.findUnique({ where: { id: data.loanTypeId }, select: { id: true, minimumAmount: true, maximumAmount: true } }),
     ])
     if (!customer) throw new Error('Selected customer was not found')
     if (!loanType) throw new Error('Selected loan type was not found')
+    const requestedAmount = new Prisma.Decimal(data.requestedAmount)
+    if (requestedAmount.lt(loanType.minimumAmount) || requestedAmount.gt(loanType.maximumAmount)) {
+      throw new Error(`Requested amount must be between ${loanType.minimumAmount.toFixed(2)} and ${loanType.maximumAmount.toFixed(2)} for the selected loan type`)
+    }
     const loanNumber = await nextLoanNumber(transaction)
     const loan = await transaction.loan.create({ data: { ...data, loanNumber, createdById: userId } })
     await recordAudit(transaction, { userId, action: 'LOAN_CREATED', entity: 'Loan', entityId: loan.id, description: `Loan ${loanNumber} was created`, metadata: { loanNumber } })
     return loan
   })
+}
+
+export async function requestLoanRollover(loanId: string, userId: string) {
+  return prisma.$transaction(async (transaction) => {
+    const source = await transaction.loan.findUnique({
+      where: { id: loanId },
+      select: {
+        id: true,
+        loanNumber: true,
+        customerId: true,
+        loanTypeId: true,
+        requestedAmount: true,
+        interestRate: true,
+        interestType: true,
+        term: true,
+        termUnit: true,
+        repaymentFrequency: true,
+        purpose: true,
+        status: true,
+        rolloverToLoan: { select: { id: true, loanNumber: true } },
+        repaymentSchedules: { select: { remainingAmount: true } },
+      },
+    })
+    if (!source) throw new Error('Loan not found')
+    if (source.status !== 'COMPLETED' || source.repaymentSchedules.length === 0 || source.repaymentSchedules.some((item) => item.remainingAmount.gt(0))) {
+      throw new Error('Only fully paid loans can be rolled over')
+    }
+    if (source.rolloverToLoan) throw new Error('A rollover has already been requested for this loan')
+
+    const sequence = await transaction.numberSequence.upsert({
+      where: { key: 'loan' },
+      create: { key: 'loan', nextValue: 2 },
+      update: { nextValue: { increment: 1 } },
+    })
+    const loanNumber = `LN-${String(sequence.nextValue - 1).padStart(6, '0')}`
+    const rollover = await transaction.loan.create({
+      data: {
+        loanNumber,
+        customerId: source.customerId,
+        loanTypeId: source.loanTypeId,
+        requestedAmount: source.requestedAmount,
+        interestRate: source.interestRate,
+        interestType: source.interestType,
+        term: source.term,
+        termUnit: source.termUnit,
+        repaymentFrequency: source.repaymentFrequency,
+        purpose: source.purpose,
+        rolloverFromLoanId: source.id,
+        createdById: userId,
+      },
+    })
+    await recordAudit(transaction, {
+      userId,
+      action: 'LOAN_ROLLOVER_REQUESTED',
+      entity: 'Loan',
+      entityId: rollover.id,
+      description: `Rollover of loan ${source.loanNumber} requested as ${loanNumber}`,
+      metadata: { sourceLoanId: source.id, sourceLoanNumber: source.loanNumber, rolloverLoanNumber: loanNumber },
+    })
+    return rollover
+  }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable })
 }
 
 async function transitionLoan(loanId: string, from: Prisma.LoanWhereInput['status'], to: Prisma.LoanUpdateInput['status'], action: string, userId: string) {
@@ -154,7 +229,6 @@ export async function approveLoan(loanId: string, approvedAmount: unknown, userI
     const transition = await transaction.loan.updateMany({ where: { id: loanId, status: 'UNDER_REVIEW' }, data: { approvedAmount: amount, status: 'APPROVED', approvalDate: new Date(), approvedById: userId, rejectionReason: null } })
     if (transition.count !== 1) throw new Error('Loan is not under review')
     const loan = await transaction.loan.findUniqueOrThrow({ where: { id: loanId } })
-    await generateRepaymentSchedule(transaction, loan.id)
     await recordAudit(transaction, { userId, action: 'LOAN_APPROVED', entity: 'Loan', entityId: loan.id, description: `Loan ${loan.loanNumber} was approved`, metadata: { approvedAmount: amount, approvedById: userId } })
     await transaction.notification.create({ data: { userId, title: 'Loan approved', message: `Loan ${loan.loanNumber} was approved.`, type: 'LOAN' } })
     return loan
@@ -198,8 +272,11 @@ export async function disburseLoan(loanId: string, input: unknown, userId: strin
     if (transition.count !== 1) throw new Error('Loan is not approved for disbursement')
     const updatedLoan = await transaction.loan.findUniqueOrThrow({ where: { id: loanId } })
 
-    const existingSchedule = await transaction.loanRepaymentSchedule.count({ where: { loanId } })
-    if (existingSchedule === 0) await generateRepaymentSchedule(transaction, updatedLoan.id, disbursementDate)
+    const schedule = await generateRepaymentSchedule(transaction, updatedLoan.id, disbursementDate)
+    const maturityDate = schedule.at(-1)?.dueDate
+    const disbursedLoan = maturityDate
+      ? await transaction.loan.update({ where: { id: loanId }, data: { maturityDate } })
+      : updatedLoan
 
     await recordAudit(transaction, {
       userId,
@@ -225,6 +302,6 @@ export async function disburseLoan(loanId: string, input: unknown, userId: strin
       },
     })
 
-    return updatedLoan
+    return disbursedLoan
   }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable })
 }

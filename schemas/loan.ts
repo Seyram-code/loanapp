@@ -17,7 +17,7 @@ export const loanCreateSchema = z.object({
   interestRate: percentageSchema,
   interestType: z.enum(['FLAT', 'REDUCING_BALANCE']),
   term: z.number().int().positive().max(120),
-  termUnit: z.enum(['WEEK', 'MONTH']),
+  termUnit: z.enum(['DAY', 'WEEK', 'MONTH']),
   repaymentFrequency: z.enum(['DAILY', 'WEEKLY', 'BIWEEKLY', 'MONTHLY', 'QUARTERLY']),
   purpose: z.string().trim().max(255).optional(),
   applicationDate: optionalDateSchema,

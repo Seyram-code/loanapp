@@ -11,7 +11,7 @@ import { DateDisplay } from '@/components/ui/DateDisplay'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { EmptyState } from '@/components/ui/StateViews'
 
-type Loan = { id: string; loanNumber: string; customer: string; loanType: string; amount: string; interest: string; term: string; outstanding: string; dueDate: string | null; status: string; createdAt: string }
+type Loan = { id: string; loanNumber: string; customer: string; loanType: string; amount: string; interest: string; term: string; outstanding: string; dueDate: string | null; isDueDateProjected?: boolean; status: string; createdAt: string }
 type Page = { loans: Loan[]; total: number; page: number; pageSize: number; totalPages: number }
 
 const tabs = ['ALL', 'PENDING', 'UNDER REVIEW', 'APPROVED', 'ACTIVE', 'COMPLETED', 'REJECTED', 'OVERDUE', 'DEFAULTED']
@@ -98,7 +98,7 @@ export default function LoansPage() {
             <span>Interest</span>
             <span>Term</span>
             <span>Outstanding</span>
-            <span>Due date</span>
+            <span>Final due date</span>
             <button onClick={() => sortBy('status')}>Status</button>
             <span>Actions</span>
           </div>
@@ -115,7 +115,7 @@ export default function LoansPage() {
                 <span>{loan.interest}</span>
                 <span>{loan.term}</span>
                 <CurrencyDisplay value={loan.outstanding} decimals={2} />
-                <DateDisplay value={loan.dueDate} />
+                <span className="loan-final-due-date"><DateDisplay value={loan.dueDate} />{loan.isDueDateProjected && <small>Projected</small>}</span>
                 <StatusBadge status={loan.status} />
                 <div className="customer-actions">
                   <Link href={`/loans/${loan.id}`} aria-label={`View ${loan.loanNumber}`}>

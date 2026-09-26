@@ -27,9 +27,12 @@ const safeMessages = new Set([
   'Invalid loan transition from DISBURSED',
   'Only active loans can be defaulted',
   'Loan has no overdue balance',
+  'Only fully paid loans can be rolled over',
+  'A rollover has already been requested for this loan',
   'Disbursement exceeds approved amount',
   'Rejection reason is required',
   'Selected customer was not found',
+  'Referring customer was not found',
   'Selected loan type was not found',
   'Current password is incorrect',
   'You cannot deactivate your own account',
@@ -44,6 +47,6 @@ export function safeErrorResponse(error: unknown, context: string) {
   if (error instanceof Error && error.message === 'Unauthorized') return unauthorizedResponse()
   if (error instanceof Error && error.message === 'Forbidden') return forbiddenResponse()
   if (error instanceof ZodError || error instanceof SyntaxError) return badRequestResponse('Please check the submitted values.')
-  if (error instanceof Error && safeMessages.has(error.message)) return badRequestResponse(error.message)
+  if (error instanceof Error && (safeMessages.has(error.message) || error.message.startsWith('Requested amount must be between '))) return badRequestResponse(error.message)
   return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 })
 }

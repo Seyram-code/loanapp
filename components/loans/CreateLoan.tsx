@@ -7,8 +7,8 @@ import Decimal from 'decimal.js'
 import './create-loan.css'
 
 type Customer = { id: string; name: string; customerNumber: string }
-type LoanType = { id: string; name: string; defaultInterestRate: string; defaultTerm: number; repaymentFrequency: string; minimumAmount: string; maximumAmount: string }
-type FormState = { customerId: string; loanTypeId: string; requestedAmount: string; interestRate: string; interestType: 'FLAT' | 'REDUCING_BALANCE'; term: string; termUnit: 'WEEK' | 'MONTH'; repaymentFrequency: string; purpose: string; applicationDate: string; notes: string }
+type LoanType = { id: string; name: string; defaultInterestRate: string; defaultTerm: number; defaultTermUnit: 'DAY' | 'WEEK' | 'MONTH'; repaymentFrequency: string; minimumAmount: string; maximumAmount: string }
+type FormState = { customerId: string; loanTypeId: string; requestedAmount: string; interestRate: string; interestType: 'FLAT' | 'REDUCING_BALANCE'; term: string; termUnit: 'DAY' | 'WEEK' | 'MONTH'; repaymentFrequency: string; purpose: string; applicationDate: string; notes: string }
 const initialForm: FormState = { customerId: '', loanTypeId: '', requestedAmount: '', interestRate: '', interestType: 'FLAT', term: '', termUnit: 'MONTH', repaymentFrequency: 'MONTHLY', purpose: '', applicationDate: new Date().toISOString().slice(0, 10), notes: '' }
 function calculate(amount: string, rate: string, term: string, interestType: string) { const principal = new Decimal(amount || 0); const installments = new Decimal(term || 0); if (installments.isZero() || principal.isZero()) return { interest: '0.00', total: '0.00', installment: '0.00' }; const interest = interestType === 'FLAT' ? principal.mul(new Decimal(rate || 0)).div(100) : principal.mul(new Decimal(rate || 0).div(100).add(1).pow(installments).sub(1)); const total = principal.add(interest); return { interest: interest.toFixed(2), total: total.toFixed(2), installment: total.div(installments).toFixed(2) } }
 

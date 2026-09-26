@@ -42,6 +42,9 @@
 .loan-actions button:hover, .loan-actions a:hover { background: #f4f7f8; border-color: #bfd0d3; }
 .loan-actions .primary { background: #254a63; border-color: #254a63; color: white; }
 .loan-actions .primary:hover { background: #1b3d54; }
+.loan-actions > .primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.rollover-loan-link { display: inline-flex; align-items: center; min-height: 42px; padding: 9px 13px; color: #24533f; background: #edf5ef; border: 1px solid #c9ddce; border-radius: 9px; font-size: 11px; font-weight: 700; text-decoration: none; }
+.rollover-loan-link:hover { background: #e0eee3; }
 .loan-action-menu { position: relative; }
 .loan-action-menu summary { display: inline-flex; align-items: center; justify-content: space-between; gap: 14px; min-width: 166px; padding: 11px 14px 11px 16px; list-style: none; cursor: pointer; border-radius: 10px; box-shadow: 0 2px 0 #19334a, 0 6px 14px rgba(29, 74, 99, .12); font-size: 12px; font-weight: 750; letter-spacing: .02em; }
 .loan-action-menu summary::-webkit-details-marker { display: none; }
@@ -55,3 +58,31 @@
 .loan-warning { margin-top: 16px; background: #fff7f3; border: 1px solid #f8d1bb; border-radius: 12px; padding: 14px 16px; color: #7d533d; }
 .loan-warning strong { display: block; margin-bottom: 8px; }
 @media (max-width: 768px) { .loan-details-page { padding: 20px 16px 36px; } .loan-details-header { flex-direction: column; } .loan-details-panel { padding-inline: 16px; }.loan-details-panel > .directory-toolbar { margin-inline: -16px !important; padding-inline: 16px !important; }.loan-summary-grid { grid-template-columns: 1fr; gap: 10px; }.loan-summary-item { min-height: 92px; } }
+
+.loan-final-due-date { display: grid; gap: 3px; justify-items: start; }
+.loan-final-due-date small { color: #8b7b50; font-size: 8px; font-weight: 700; text-transform: uppercase; }
+
+.loan-details-header-actions { display: flex; align-items: center; gap: 12px; }
+.loan-print-button { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; color: #254a63; background: #fff; border: 1px solid #d5e4e9; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; }
+.loan-print-button:hover { background: #edf4f6; }
+.loan-print-document { display: none; }
+@media print {
+  @page { margin: 14mm; }
+  body * { visibility: hidden !important; }
+  .loan-print-document, .loan-print-document * { visibility: visible !important; }
+  .loan-print-document { position: absolute; inset: 0 auto auto 0; display: block !important; width: 100%; padding: 0; color: #111; background: #fff; font: 10pt Arial, sans-serif; }
+  .loan-print-header { display: grid; grid-template-columns: 1fr auto; gap: 4px 16px; align-items: end; padding-bottom: 14px; border-bottom: 2px solid #254a63; }
+  .loan-print-header p { grid-column: 1 / -1; margin: 0; color: #52616b; font-size: 9pt; text-transform: uppercase; }
+  .loan-print-header h1 { margin: 0; font-size: 20pt; }
+  .loan-print-header time { color: #52616b; font-size: 9pt; }
+  .loan-print-summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 20px; margin: 18px 0 24px; }
+  .loan-print-summary div { display: grid; grid-template-columns: 42% 1fr; gap: 10px; padding: 8px 0; border-bottom: 1px solid #d8dee2; }
+  .loan-print-summary dt { color: #52616b; font-weight: 700; }
+  .loan-print-summary dd { margin: 0; overflow-wrap: anywhere; }
+  .loan-print-document h2 { margin: 0 0 10px; font-size: 13pt; }
+  .loan-print-schedule { width: 100%; border-collapse: collapse; font-size: 8pt; }
+  .loan-print-schedule th, .loan-print-schedule td { padding: 7px 5px; border: 1px solid #bfc9ce; text-align: left; }
+  .loan-print-schedule th { color: #17242d; background: #edf2f4 !important; print-color-adjust: exact; }
+  .loan-print-schedule tr { break-inside: avoid; }
+  .loan-details-header, .loan-details-panel { display: none !important; }
+}

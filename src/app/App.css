@@ -161,7 +161,7 @@ button, a, input, select, textarea { font: inherit; }
 .secondary-button:hover:not(:disabled), .report-refresh:hover, .icon-button:hover { box-shadow: var(--shadow-sm); }
 .primary-button:disabled { cursor: wait; opacity: .62; }
 .search-box, .directory-toolbar select, .report-filter-field input, .report-filter-field select, .settings-form input, .settings-form textarea, .settings-form select, .user-form input, .user-form select, .login-input { border-color: var(--line); border-radius: 8px; background: #f8fafb; transition: border-color .18s ease, box-shadow .18s ease, background .18s ease; }
-.search-box:focus-within, .report-filter-field input:focus, .report-filter-field select:focus, .settings-form input:focus, .settings-form textarea:focus, .settings-form select:focus, .user-form input:focus, .user-form select:focus, .login-input:focus-within { border-color: #8eafbf; background: #fff; box-shadow: 0 0 0 4px rgba(83, 124, 145, .10); }
+.search-box:focus-within, .report-filter-field input:focus, .report-filter-field select:focus, .settings-form input:focus, .settings-form textarea:focus, .settings-form select:focus, .user-form input:focus, .user-form select:focus, .login-input:focus-within { border-color: #8eafbf; background: #fff; box-shadow: 0 0 0 4px rgba(83, 124, 145, .1); }
 .customer-table, .loan-table, .users-table, .notification-list { scrollbar-color: #c3cdd4 transparent; scrollbar-width: thin; }
 .customer-row:not(.customer-head), .loan-directory-row:not(.customer-head), .table-row:not(.table-head), .user-row, .notification-row { transition: background-color .16s ease, box-shadow .16s ease; }
 .customer-row:not(.customer-head):hover, .loan-directory-row:not(.customer-head):hover, .table-row:not(.table-head):hover, .user-row:hover, .notification-row:hover { background: #f7fafb; }
@@ -239,9 +239,14 @@ button, a, input, select, textarea { font: inherit; }
 .loan-form-dialog .outstanding-balance { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 10px; color: #a84f45; background: #fff3f0; border: 1px solid #f3d0ca; border-radius: 8px; font-size: 11px; }
 .loan-form-dialog .outstanding-balance span { color: #9b6a63; }
 .loan-form-dialog .outstanding-balance strong { color: #c04f45; font-size: 12px; }
+.loan-form-dialog .repayment-validation-message { display: grid; gap: 2px; padding: 9px 10px; color: #9b4c43; background: #fff7f5; border: 1px solid #f3d0ca; border-radius: 8px; font-size: 11px; line-height: 1.4; }
+.loan-form-dialog .repayment-validation-message strong { font-size: 11px; }
+.loan-form-dialog .repayment-validation-message span { color: #9b6a63; }
 [data-theme='dark'] .loan-form-dialog .outstanding-balance { color: #f29a8f; background: #3a2525; border-color: #69403d; }
 [data-theme='dark'] .loan-form-dialog .outstanding-balance span { color: #d99b94; }
 [data-theme='dark'] .loan-form-dialog .outstanding-balance strong { color: #ff9c91; }
+[data-theme='dark'] .loan-form-dialog .repayment-validation-message { color: #f29a8f; background: #3a2525; border-color: #69403d; }
+[data-theme='dark'] .loan-form-dialog .repayment-validation-message span { color: #d99b94; }
 .loan-form-dialog input:focus, .loan-form-dialog select:focus, .loan-form-dialog textarea:focus { border-color: #8eafbf; box-shadow: 0 0 0 4px rgba(83, 124, 145, .1); }
 @media (max-width: 560px) { .modal-panel { width: calc(100vw - 28px); border-radius: 14px; }.modal-header { padding: 18px 18px 15px; }.confirm-dialog-message { padding: 20px 18px; }.confirm-dialog-actions { flex-direction: column-reverse; padding: 0 18px 18px; }.confirm-dialog-actions button { width: 100%; }.loan-form-dialog { max-height: calc(100dvh - 28px); padding: 14px; }.loan-form-dialog .loan-actions { flex-direction: row; } }
 @keyframes dropdown-in { from { opacity: 0; transform: translateY(-4px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
@@ -305,3 +310,34 @@ button, a, input, select, textarea { font: inherit; }
 .reports-page { min-height: 100vh; padding: 42px 4%; background: #f6f5f1; }.reports-header { max-width: 1440px; display: flex; align-items: end; justify-content: space-between; gap: 24px; margin: 0 auto 28px; }.reports-header h1 { margin: 0; color: #302f2b; font-family: 'DM Serif Display', Georgia, serif; font-size: 34px; font-weight: 400; }.reports-filters { max-width: 1440px; display: flex; align-items: end; gap: 12px; padding: 16px 18px; margin: 0 auto 18px; }.report-filter-field { display: grid; gap: 6px; min-width: 150px; }.report-filter-field label { color: #77756d; font-size: 10px; font-weight: 700; }.report-filter-field input, .report-filter-field select { width: 100%; padding: 9px 10px; color: #34332f; background: #f6f5f1; border: 1px solid #e7e5de; border-radius: 6px; font-size: 11px; }.report-refresh { display: grid; place-items: center; width: 34px; height: 34px; color: #537c91; background: #e1edf1; border-radius: 6px; }.report-refresh:hover { color: #27445f; background: #d5e6eb; }.report-sections { max-width: 1440px; display: grid; gap: 18px; margin: auto; }.report-section { padding: 22px; }.report-section-heading { display: flex; align-items: start; justify-content: space-between; gap: 16px; margin-bottom: 18px; }.report-section-heading h2 { margin: 0; color: #33322f; font-size: 17px; }.report-section-count { padding-top: 5px; color: #aaa79e; font-size: 11px; }.report-metric-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }.report-loan-grid, .report-financial-grid { grid-template-columns: repeat(7, minmax(0, 1fr)); }.report-metric { min-height: 86px; display: grid; align-content: space-between; gap: 10px; padding: 14px; background: #f7f6f3; border: 1px solid #ece8e2; border-radius: 7px; }.report-metric span { color: #929087; font-size: 10px; }.report-metric strong { color: #34332f; font-size: 17px; overflow-wrap: anywhere; }.report-metric.blue { background: #edf4f6; border-color: #dce9ef; }.report-metric.mint { background: #edf5f0; border-color: #dcece3; }.report-metric.coral { background: #fcf0ec; border-color: #f3ded7; }.report-metric.gold { background: #fcf5df; border-color: #f0dfac; }
 @media (max-width: 1100px) { .report-loan-grid, .report-financial-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 @media (max-width: 720px) { .reports-page { padding: 28px 18px; }.reports-header { align-items: start; flex-direction: column; }.reports-header .primary-button { width: 100%; justify-content: center; }.reports-filters { align-items: stretch; flex-direction: column; }.report-filter-field { min-width: 0; }.report-refresh { width: 100%; }.report-metric-grid, .report-loan-grid, .report-financial-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.referred-customer { padding: 16px 0; border-top: 1px solid #e8edf0; }
+.referred-customer-header, .referred-loan > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.referred-customer-header h3 { margin: 0; color: #233243; font-size: 15px; }
+.referred-customer-header p { margin: 5px 0 0; color: #788691; font-size: 11px; }
+.referred-customer-actions { display: flex; align-items: center; gap: 10px; }
+.referred-view-button { display: inline-flex; align-items: center; gap: 6px; padding: 7px 10px; color: #254a63; background: #fff; border: 1px solid #d5e4e9; border-radius: 6px; font-size: 10px; font-weight: 700; cursor: pointer; }
+.referred-view-button:hover { background: #edf4f6; }
+.referred-customer-modal { display: flex; flex-direction: column; width: min(920px, calc(100vw - 32px)); max-height: calc(100dvh - 40px); min-height: 0; overflow: hidden; }
+.referred-customer-modal .modal-header { flex: 0 0 auto; padding: 18px 22px 15px; }
+.referred-customer-modal .modal-header h2 { min-width: 0; overflow-wrap: anywhere; font-size: 18px; }
+.referred-customer-modal-body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 16px 22px 22px; }
+.referred-modal-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; color: #788691; font-size: 11px; }
+.referred-customer-modal .referred-loan { margin-top: 12px; }
+.referred-loan { margin-top: 14px; padding: 14px; background: #f7f9fa; border: 1px solid #e5ebef; border-radius: 8px; }
+.referred-loan > header { align-items: center; }
+.referred-loan > header > div { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; }
+.referred-loan > header strong { color: #254a63; font-size: 13px; }
+.referred-loan > header > div > span { color: #788691; font-size: 11px; }
+.referred-loan-summary { display: flex; flex-wrap: wrap; gap: 12px 24px; margin: 12px 0; color: #788691; font-size: 10px; }
+.referred-loan-summary span { display: grid; gap: 3px; }
+.referred-loan-summary strong { color: #273849; font-size: 12px; }
+.referred-schedule { overflow-x: auto; margin-top: 8px; }
+.referred-schedule .profile-table-row { min-width: 720px; }
+.customer-loan-row { min-width: 860px; grid-template-columns: 1fr 1.2fr 1fr 1fr .9fr 1fr 1.25fr; }
+.profile-rollover-button { padding: 6px 9px; color: #24533f; background: #edf5ef; border: 1px solid #c9ddce; border-radius: 5px; font-size: 10px; font-weight: 700; white-space: nowrap; cursor: pointer; }
+.profile-rollover-button:hover { background: #e0eee3; }
+.referred-payment-list { display: grid; gap: 8px; margin-top: 14px; color: #526575; font-size: 10px; }
+.referred-payment-list > strong { color: #384c5a; font-size: 11px; }
+.referred-payment-list > div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; padding-top: 7px; border-top: 1px solid #e5ebef; }
+.referred-no-payments { margin: 12px 0 0; color: #87939b; font-size: 10px; }
+@media (max-width: 760px) { .referred-customer-actions { align-items: flex-end; flex-direction: column; gap: 7px; }.referred-loan { padding: 11px; }.referred-loan-summary { gap: 10px 16px; }.referred-customer-modal { width: calc(100vw - 24px); max-height: calc(100dvh - 24px); }.referred-customer-modal .modal-header { padding: 15px 16px 12px; }.referred-customer-modal .modal-header h2 { font-size: 16px; }.referred-customer-modal-body { padding: 12px 16px 16px; }.referred-customer-modal .referred-schedule .profile-table-row { min-width: 0; grid-template-columns: 1fr 1.2fr; gap: 8px 12px; padding: 8px 0; }.referred-customer-modal .referred-schedule .profile-table-head { display: none; }.referred-customer-modal .referred-schedule .profile-table-row > :nth-child(odd) { text-align: left; }.referred-customer-modal .referred-schedule .profile-table-row > :nth-child(even) { text-align: right; } }
