@@ -13,13 +13,14 @@ type DashboardPageProps = { userName: string; currentDate: string }
 
 export default function App({ userName, currentDate }: DashboardPageProps) {
   const { stats, loading, error, refetch } = useDashboardStats()
+  const firstName = userName.trim().split(/\s+/)[0] || 'Administrator'
 
   if (error) {
     return <div className="page-content">
           <section className="page-intro">
             <div>
               <p className="eyebrow">Portfolio overview</p>
-              <h1>Welcome back, {userName}!</h1>
+              <h1>Welcome back, {firstName}!</h1>
               <p className="intro-copy">Here&apos;s what&apos;s happening with your loan portfolio today.</p>
             </div>
             <div className="welcome-date"><CalendarDays size={18} /><div><strong>{currentDate}</strong><small>Have a productive day!</small></div></div>
@@ -37,7 +38,7 @@ export default function App({ userName, currentDate }: DashboardPageProps) {
         <section className="page-intro">
           <div>
             <p className="eyebrow">Portfolio overview</p>
-            <h1>Welcome back, {userName}!</h1>
+            <h1>Welcome back, {firstName}!</h1>
             <p className="intro-copy">Here&apos;s what&apos;s happening with your loan portfolio today.</p>
           </div>
           <div className="welcome-date"><CalendarDays size={18} /><div><strong>{currentDate}</strong><small>Have a productive day!</small></div></div>
